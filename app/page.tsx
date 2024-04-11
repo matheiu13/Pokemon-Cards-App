@@ -8,9 +8,11 @@ import {
   Text,
   TextInput,
   Image,
-  // Loader,
+  Loader,
+  Button,
+  Box,
+  Group,
 } from "@mantine/core";
-// import { debounce } from "lodash";
 import { useDebouncedValue } from "@mantine/hooks";
 interface Pokemon {
   name: string;
@@ -20,6 +22,7 @@ interface Pokemon {
 interface PokemonAPIResponse {
   results: { name: string; url: string }[];
   next: string | null;
+  previous: string | null;
 }
 
 export default function Home() {
@@ -27,12 +30,23 @@ export default function Home() {
   const [filteredPokemonData, setFilteredPokemonData] = useState<Pokemon[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [debounced] = useDebouncedValue(searchQuery, 200, { leading: true });
+  const [nextPageUrl, setNextPageUrl] = useState<string | null>(
+    "https://pokeapi.co/api/v2/pokemon/?offset=20&limit=20"
+  );
+  const [previousPageUrl, setPreviousPageUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const fetchPokemonData = async (url: string) => {
+    setIsLoading(true);
     const res = await fetch(url);
     const data: PokemonAPIResponse = await res.json();
+    setNextPageUrl(data.next);
+    setPreviousPageUrl(data.previous);
+    console.log(previousPageUrl);
+
     const detailedPokemonData = await getAllPokemonData(data.results);
-    setPokemonData([...pokemonData, ...detailedPokemonData]);
+    setPokemonData([...detailedPokemonData]);
+    setIsLoading(false);
   };
 
   const getAllPokemonData = async (
@@ -58,6 +72,18 @@ export default function Home() {
     setFilteredPokemonData(filtered);
   };
 
+  const handleLoadMore = () => {
+    if (nextPageUrl) {
+      fetchPokemonData(nextPageUrl);
+    }
+  };
+
+  const handleLoadPrevious = () => {
+    if (previousPageUrl) {
+      fetchPokemonData(previousPageUrl);
+    }
+  };
+
   useEffect(() => {
     fetchPokemonData("https://pokeapi.co/api/v2/pokemon/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,18 +107,44 @@ export default function Home() {
         value={searchQuery}
         onChange={(event) => setSearchQuery(event.currentTarget.value)}
       />
-
-      <br />
-      <Grid>
+      <Group gap="xs" my="10px" justify="flex-end">
+        {previousPageUrl && (
+          <Button
+            onClick={handleLoadPrevious}
+            disabled={isLoading}
+            color="rgba(26, 16, 89, 1)"
+          >
+            {isLoading ? "Loading..." : "Previous"}
+          </Button>
+        )}
+        {nextPageUrl && (
+          <Button
+            onClick={handleLoadMore}
+            disabled={isLoading}
+            color="rgba(26, 16, 89, 1)"
+          >
+            {isLoading ? "Loading..." : "Next"}
+          </Button>
+        )}
+      </Group>
+      <Grid mb="10vh">
         {filteredPokemonData.map((pokemon, index) => (
           <GridCol span={3} key={index}>
-            <Card withBorder>
-              <Text>{pokemon.name}</Text>
-              <Image
-                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
-                alt={pokemon.name}
-                style={{ width: "100%", height: "auto" }}
-              />
+            <Card w="100%" h="100%" withBorder>
+              {isLoading ? (
+                <Box m="full" h="full">
+                  <Loader color="gray" />
+                </Box>
+              ) : (
+                <Box>
+                  <Text>{pokemon.name}</Text>
+                  <Image
+                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
+                    alt={pokemon.name}
+                    style={{ width: "100%", height: "auto" }}
+                  />
+                </Box>
+              )}
             </Card>
           </GridCol>
         ))}
