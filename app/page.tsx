@@ -39,12 +39,11 @@ export default function Home() {
 
   const fetchPokemonData = async (url: string) => {
     setIsLoading(true);
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: "force-cache" });
     const data: PokemonAPIResponse = await res.json();
     setNextPageUrl(data.next);
     setPreviousPageUrl(data.previous);
     console.log(previousPageUrl);
-
     const detailedPokemonData = await getAllPokemonData(data.results);
     setPokemonData([...detailedPokemonData]);
     setIsLoading(false);
@@ -86,7 +85,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchPokemonData("https://pokeapi.co/api/v2/pokemon/");
+    fetchPokemonData("https://pokeapi.co/api/v2/pokemon-species/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
