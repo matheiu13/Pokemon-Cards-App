@@ -14,6 +14,7 @@ import {
   Group,
 } from "@mantine/core";
 import { useDebouncedValue } from "@mantine/hooks";
+import Link from "next/link";
 interface Pokemon {
   name: string;
   id: number;
@@ -38,12 +39,11 @@ export default function Home() {
 
   const fetchPokemonData = async (url: string) => {
     setIsLoading(true);
-    const res = await fetch(url);
+    const res = await fetch(url, { cache: "force-cache" });
     const data: PokemonAPIResponse = await res.json();
     setNextPageUrl(data.next);
     setPreviousPageUrl(data.previous);
     console.log(previousPageUrl);
-
     const detailedPokemonData = await getAllPokemonData(data.results);
     setPokemonData([...detailedPokemonData]);
     setIsLoading(false);
@@ -85,7 +85,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchPokemonData("https://pokeapi.co/api/v2/pokemon/");
+    fetchPokemonData("https://pokeapi.co/api/v2/pokemon-species/");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -130,22 +130,24 @@ export default function Home() {
       <Grid mb="10vh">
         {filteredPokemonData.map((pokemon, index) => (
           <GridCol span={3} key={index}>
-            <Card w="100%" h="100%" withBorder>
-              {isLoading ? (
-                <Box m="full" h="full">
-                  <Loader color="gray" />
-                </Box>
-              ) : (
-                <Box>
-                  <Text>{pokemon.name}</Text>
-                  <Image
-                    src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
-                    alt={pokemon.name}
-                    style={{ width: "100%", height: "auto" }}
-                  />
-                </Box>
-              )}
-            </Card>
+            <Link href={`/pokemon/${pokemon.id}`}>
+              <Card w="100%" h="100%" withBorder>
+                {isLoading ? (
+                  <Box m="full" h="full">
+                    <Loader color="gray" />
+                  </Box>
+                ) : (
+                  <Box>
+                    <Text>{pokemon.name}</Text>
+                    <Image
+                      src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
+                      alt={pokemon.name}
+                      style={{ width: "100%", height: "auto" }}
+                    />
+                  </Box>
+                )}
+              </Card>
+            </Link>
           </GridCol>
         ))}
       </Grid>
