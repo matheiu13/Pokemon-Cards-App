@@ -18,12 +18,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <main>
-          <MantineProvider defaultColorScheme="dark">
-            {children}
-          </MantineProvider>
-        </main>
+      <body
+        className={inter.className}
+        style={{ height: "100%", overflowY: "hidden" }}
+      >
+        <MantineProvider defaultColorScheme="dark">{children}</MantineProvider>
       </body>
     </html>
   );
