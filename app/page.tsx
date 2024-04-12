@@ -98,6 +98,7 @@ export default function Home() {
       // console.log(pokemonTypeData.pokemon);
       setPokemonData(pokemonTypeData.pokemon);
       setFetchByFilter(true);
+      setFetchQuery(true);
     } else {
       fetchPokemonData("https://pokeapi.co/api/v2/pokemon-species/");
       setFetchByFilter(false);
